@@ -77,33 +77,57 @@ contract FundTest is Test {
         assertNotEq(funder, address(this));
     }
 
-    function testOnlyOwnerCanWithdraw() public {
-        console.log("Testing only owner can withdraw");
+    modifier onlyFunded() {
         vm.prank(USER);
         fund.fund{value: SEDING_VALUE}();
+        _;
+    }
+
+    function testOnlyOwnerCanWithdraw() public onlyFunded() {
+        console.log("Testing only owner can withdraw");
         vm.prank(USER);
         vm.expectRevert();
         fund.withdraw();
     }
-    function testOnlyOwnerCanWithdrawV2() public {
+    function testOnlyOwnerCanWithdrawV2() public onlyFunded{
         console.log("Testing only owner can withdraw");
-        vm.prank(USER);
-        fund.fund{value: SEDING_VALUE}();
         vm.prank(USER);
         vm.expectRevert();
         fund.cheaperWithdraw();
     }
 
-    // function testWithdraw() public {
-    //     console.log("Testing withdraw");
-    //     vm.prank(USER);
-    //     fund.fund{value: SEDING_VALUE}();
-    //     uint256 fundAmount = fund.getAddressToAmountFunded(USER);
-    //     assertEq(fundAmount, SEDING_VALUE); 
-    //     fund.withdraw();
-    //     uint256 fundAmountAfter = fund.getAddressToAmountFunded(USER);
-    //     assertEq(fundAmountAfter, 0); 
-    // }
+    function testWithdrawWithSingleFunder() public onlyFunded {
+        console.log("Testing withdraw with single funder");
+        uint256 ownerBalance = fund.getOwner().balance;
+        uint256 fundBalance = address(fund).balance;
+
+        vm.prank(fund.getOwner());
+        fund.withdraw();
+
+        uint256 afterOwnerBalance = fund.getOwner().balance;
+        uint256 afterFundBalance = address(fund).balance;   
+        assertEq(afterFundBalance, 0);
+        assertEq(afterOwnerBalance, ownerBalance + fundBalance);
+    }
+
+    function testWithdrawWithMultipleFunders() public onlyFunded {
+        console.log("Testing withdraw with multiple funders");
+        uint160 number = 10;
+        uint160 startAddress = 1;
+        for (uint160 i = startAddress; i < number; i++) {
+            hoax(address(i), BLANCE);
+            fund.fund{value: SEDING_VALUE}();
+        }
+
+        uint256 ownerBalance = fund.getOwner().balance;
+        uint256 fundBalance = address(fund).balance;
+
+        vm.prank(fund.getOwner());
+        fund.withdraw();
+
+        assert(address(fund).balance == 0);
+        assertEq(fund.getOwner().balance, ownerBalance + fundBalance);
+    }
 
 
 }
