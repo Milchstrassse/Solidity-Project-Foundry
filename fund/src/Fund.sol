@@ -1,11 +1,10 @@
-
 pragma solidity ^0.8.19;
 
 // 导入Chainlink的AggregatorV3Interface接口，用于获取价格数据
 import {AggregatorV3Interface} from "lib/chainlink-brownie-contracts/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 import {PriceConverter} from "utils/PriceConvert.sol";
 
-error FundMe__NotOwner();
+error Fund__NotOwner();
 
 /**
  * @title 一个示例众筹合约
@@ -13,7 +12,7 @@ error FundMe__NotOwner();
  * @notice 本合约用于创建一个示例众筹合约
  * @dev 本合约实现了价格预言机作为库来使用
  */
-contract FundMe {
+contract Fund {
     using PriceConverter for uint256;
 
     uint256 public constant MINIMUM_USD = 5 * 10 ** 18;
@@ -25,7 +24,7 @@ contract FundMe {
     // 定义一个修饰器，只有合约所有者才能执行被该修饰器修饰的函数
     modifier onlyOwner() {
         // require(msg.sender == i_owner);
-        if (msg.sender != i_owner) revert FundMe__NotOwner();
+        if (msg.sender != i_owner) revert Fund__NotOwner();
         _;
     }
 
