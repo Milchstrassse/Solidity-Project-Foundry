@@ -9,7 +9,15 @@ contract Raffle is VRFConsumerBaseV2Plus {
     error Raffle__NotEnoughETHEntered(uint256 amountEntered, uint256 minimumFee);
     error Raffle__NotEnoughTimePassed(uint256 timePassed, uint256 interval);
     error Raffle__TransferFailed();
+    error Raffle_RaffleNotOpen();
 
+    //Type Declarations
+    enum RaffleState {
+        OPEN,
+        CALCULATING
+    }
+
+    //State 
     uint16 private constant REQUESR_CONFIRMATIONS = 3;
     uint32 private constant NUM_WORDS = 1;
     uint256 private immutable i_enteranceFee;
@@ -20,6 +28,7 @@ contract Raffle is VRFConsumerBaseV2Plus {
     address payable[] private s_players;
     uint256 private s_lastTimeStamp;
     address private s_recentWinner;
+    RaffleState private s_raffleState;
 
     //Events
     event RaffleEnter(address indexed player);
@@ -34,10 +43,12 @@ contract Raffle is VRFConsumerBaseV2Plus {
     ) VRFConsumerBaseV2Plus(vrfCoordinator) {
         i_enteranceFee = enteranceFee;
         i_interval = interval;
-        s_lastTimeStamp = block.timestamp;
         i_keyHash = gasLine;
         i_subscriptionId = subscriptionId;
         i_callbackGasLimit = callbackGasLimit;
+
+        s_lastTimeStamp = block.timestamp;
+        s_raffleState = RaffleState.OPEN;
     }
 
     function enterRaffle() external payable {
@@ -45,6 +56,9 @@ contract Raffle is VRFConsumerBaseV2Plus {
         //高效调用，减少string带来的gas fee
         if (msg.value >= i_enteranceFee) {
             revert Raffle__NotEnoughETHEntered(msg.value, i_enteranceFee);
+        }
+        if (s_raffleState != RaffleState.OPEN){
+            revert Raffle_RaffleNotOpen();
         }
         s_players.push(payable(msg.sender));
         emit RaffleEnter(msg.sender);
@@ -54,6 +68,8 @@ contract Raffle is VRFConsumerBaseV2Plus {
         if (block.timestamp - s_lastTimeStamp < i_interval) {
             revert Raffle__NotEnoughTimePassed(block.timestamp - s_lastTimeStamp, i_interval);
         }
+        
+        s_raffleState = RaffleState.CALCULATING;
 
         VRFV2PlusClient.RandomWordsRequest memory RandomWordsRequest = VRFV2PlusClient.RandomWordsRequest({
             keyHash: i_keyHash,
@@ -75,6 +91,7 @@ contract Raffle is VRFConsumerBaseV2Plus {
         uint256 indexOfWinner = randomWords[0] % s_players.length;
         address payable recentWinner = s_players[indexOfWinner];
         s_recentWinner = recentWinner;
+        s_raffleState = RaffleState.OPEN;
         // Transfer the entire balance of the contract to the winner
         (bool success, ) = recentWinner.call{value: address(this).balance}("");
         if (!success) {
