@@ -1,7 +1,9 @@
 pragma solidity ^0.8.19;
 
 import {Script} from "forge-std/Script.sol";
-import {VRFCoordinatorV2Mock} from "lib/chainlink-brownie-contracts/contracts/src/v0.8/mocks/VRFCoordinatorV2Mock.sol";
+// import {VRFCoordinatorV2Mock} from "lib/chainlink-brownie-contracts/contracts/src/v0.8/mocks/VRFCoordinatorV2Mock.sol";
+import {VRFCoordinatorV2_5Mock} from "lib/chainlink-brownie-contracts/contracts/src/v0.8/vrf/mocks/VRFCoordinatorV2_5Mock.sol";
+import {LinkToken} from "test/mocks/LinkToken.sol";
 
 abstract contract CodeConstants {
     // VRF mock datas
@@ -9,12 +11,11 @@ abstract contract CodeConstants {
     uint96 public constant MOCK_GAS_PRICE_LINK = 1e9; // 1 GWEI per gas
     int256 public constant MOCK_LINK_ETH_FEED = 2000000000000000000; // 2 LINK per ETH
 
-
     uint256 public constant ETH_SEPOLIA_CHIAN_ID = 11155111;
     uint256 public constant ETH_LOCAL_CHAIN_ID = 31337;
-} 
+}
 
-contract HelperConfig is Script, CodeConstants{
+contract HelperConfig is Script, CodeConstants {
     // Errors
     error HelperConfig__InvalidChainId();
 
@@ -25,6 +26,7 @@ contract HelperConfig is Script, CodeConstants{
         bytes32 gasLine;
         uint256 subscriptionId;
         uint32 callbackGasLimit;
+        address link;
     }
 
     NetworkConfig public activeNetworkConfig;
@@ -32,7 +34,6 @@ contract HelperConfig is Script, CodeConstants{
 
     constructor() {
         networkConfigs[ETH_SEPOLIA_CHIAN_ID] = getSepoliaConfig();
-
     }
 
     function getConfigByChainId(uint256 chainId) public returns (NetworkConfig memory) {
@@ -42,21 +43,18 @@ contract HelperConfig is Script, CodeConstants{
             return getLocalConfig();
         } else {
             revert HelperConfig__InvalidChainId();
-        } 
+        }
     }
 
     function getLocalConfig() internal returns (NetworkConfig memory) {
-
         if (activeNetworkConfig.vrfCoordinator != address(0)) {
             return activeNetworkConfig;
         }
 
         vm.startBroadcast();
-        VRFCoordinatorV2Mock vrfCoordinator = new VRFCoordinatorV2Mock(
-            MOCK_BASE_FEE,
-            MOCK_GAS_PRICE_LINK
-            // MOCK_LINK_ETH_FEED
-        );
+        VRFCoordinatorV2_5Mock vrfCoordinator = new VRFCoordinatorV2_5Mock(MOCK_BASE_FEE, MOCK_GAS_PRICE_LINK,MOCK_LINK_ETH_FEED);
+        // MOCK_LINK_ETH_FEED
+        LinkToken link = new LinkToken();
         vm.stopBroadcast();
 
         return NetworkConfig({
@@ -64,8 +62,9 @@ contract HelperConfig is Script, CodeConstants{
             interval: 30,
             vrfCoordinator: address(vrfCoordinator),
             gasLine: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae,
-            subscriptionId: 12345,
-            callbackGasLimit: 100000
+            subscriptionId: 0,
+            callbackGasLimit: 100000,
+            link: address(link)
         });
     }
 
@@ -80,7 +79,8 @@ contract HelperConfig is Script, CodeConstants{
             vrfCoordinator: 0x9DdfaCa8183c41ad55329BdeeD9F6A8d53168B1B,
             gasLine: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae,
             subscriptionId: 12345,
-            callbackGasLimit: 100000
+            callbackGasLimit: 100000,
+            link: 0x779877A7B0D9E8603169DdbD7836e478b4624789
         });
     }
 }

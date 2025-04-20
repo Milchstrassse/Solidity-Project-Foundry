@@ -3,10 +3,12 @@ pragma solidity ^0.8.19;
 import {VRFConsumerBaseV2Plus} from
     "lib/chainlink-brownie-contracts/contracts/src/v0.8/vrf/dev/VRFConsumerBaseV2Plus.sol";
 import {VRFV2PlusClient} from "lib/chainlink-brownie-contracts/contracts/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol";
+import {AutomationCompatibleInterface} from
+    "lib/chainlink-brownie-contracts/contracts/src/v0.8/interfaces/AutomationCompatibleInterface.sol";
 
-contract Raffle is VRFConsumerBaseV2Plus {
+contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
     //Errors
-    error Raffle__NotEnoughETHEntered(uint256 amountEntered, uint256 minimumFee);
+    error Raffle__NotEnoughETHEntered();
     error Raffle__NotEnoughTimePassed(uint256 timePassed, uint256 interval);
     error Raffle__TransferFailed();
     error Raffle_RaffleNotOpen();
@@ -56,8 +58,8 @@ contract Raffle is VRFConsumerBaseV2Plus {
     function enterRaffle() external payable {
         // require(msg.value >= i_enteranceFee, "Not enough ETH to enter the raffle");
         //高效调用，减少string带来的gas fee
-        if (msg.value >= i_enteranceFee) {
-            revert Raffle__NotEnoughETHEntered(msg.value, i_enteranceFee);
+        if (msg.value < i_enteranceFee) {
+            revert Raffle__NotEnoughETHEntered();
         }
         if (s_raffleState != RaffleState.OPEN) {
             revert Raffle_RaffleNotOpen();
@@ -68,9 +70,10 @@ contract Raffle is VRFConsumerBaseV2Plus {
 
     /**
      */
-    function checkUpKeep(bytes memory /* unused */ )
+    function checkUpkeep(bytes memory /* unused */ )
         public
         view
+        override
         returns (bool upkeepNeeded, bytes memory /* performData */ )
     {
         bool isOpen = (RaffleState.OPEN == s_raffleState);
@@ -81,15 +84,15 @@ contract Raffle is VRFConsumerBaseV2Plus {
         upkeepNeeded = (isOpen && timePassed && hasPlayers && hasBalance);
     }
 
-    function pickWinner() external {
-        (bool upKeepNeeded,) = checkUpKeep("");
+    function performUpkeep(bytes memory /* unused */ ) external override {
+        (bool upKeepNeeded,) = checkUpkeep("");
         if (!upKeepNeeded) {
             revert Raffle_UpkeepNotNeeded(address(this).balance, s_players.length, uint256(s_raffleState));
         }
 
         s_raffleState = RaffleState.CALCULATING;
 
-        VRFV2PlusClient.RandomWordsRequest memory RandomWordsRequest = VRFV2PlusClient.RandomWordsRequest({
+        VRFV2PlusClient.RandomWordsRequest memory randomWordsRequest = VRFV2PlusClient.RandomWordsRequest({
             keyHash: i_keyHash,
             subId: i_subscriptionId,
             requestConfirmations: REQUESR_CONFIRMATIONS,
@@ -101,10 +104,14 @@ contract Raffle is VRFConsumerBaseV2Plus {
             )
         });
 
-        uint256 requestId = s_vrfCoordinator.requestRandomWords(RandomWordsRequest);
+        // uint256 requestId =
+        s_vrfCoordinator.requestRandomWords(randomWordsRequest);
+        // uint256 requestId = s_vrfCoordinator.requestRandomWords(
+        //     i_keyHash, i_subscriptionId, REQUESR_CONFIRMATIONS, i_callbackGasLimit, NUM_WORDS
+        // );
     }
 
-    function fulfillRandomWords(uint256 /*requestId*/, uint256[] calldata randomWords) internal override {
+    function fulfillRandomWords(uint256, /*requestId*/ uint256[] calldata randomWords) internal override {
         // Pick a random winner from the players array
         uint256 indexOfWinner = randomWords[0] % s_players.length;
         address payable recentWinner = s_players[indexOfWinner];
@@ -146,5 +153,9 @@ contract Raffle is VRFConsumerBaseV2Plus {
 
     function getRaffleState() public view returns (RaffleState) {
         return s_raffleState;
+    }
+
+    function getPlayers(uint256 index) public view returns (address) {
+        return s_players[index];
     }
 }
