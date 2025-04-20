@@ -69,7 +69,7 @@ contract Raffle is VRFConsumerBaseV2Plus {
     /**
      */
     function checkUpKeep(bytes memory /* unused */ )
-        external
+        public
         view
         returns (bool upkeepNeeded, bytes memory /* performData */ )
     {
@@ -126,5 +126,25 @@ contract Raffle is VRFConsumerBaseV2Plus {
     //getter
     function getEnteranceFee() public view returns (uint256) {
         return i_enteranceFee;
+    }
+
+    function getInterval() public view returns (uint256) {
+        return i_interval;
+    }
+
+    function getVrfCoordinator() public view returns (address) {
+        return address(s_vrfCoordinator);
+    }
+
+    function getGasLine() public view returns (bytes32) {
+        return i_keyHash;
+    }
+
+    function getSubscriptionId() public view returns (uint256) {
+        return i_subscriptionId;
+    }
+
+    function getRaffleState() public view returns (RaffleState) {
+        return s_raffleState;
     }
 }
