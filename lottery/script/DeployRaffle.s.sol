@@ -26,7 +26,7 @@ contract DeployRaffle is Script {
         Raffle raffle = new Raffle(
             config.entranceFee,
             config.interval,
-            config.vrfCoordinator,
+            config.vrfCoordinator,  
             config.gasLine,
             config.subscriptionId,
             config.callbackGasLimit

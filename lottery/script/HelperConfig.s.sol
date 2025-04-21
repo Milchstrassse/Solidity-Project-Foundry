@@ -2,7 +2,8 @@ pragma solidity ^0.8.19;
 
 import {Script} from "forge-std/Script.sol";
 // import {VRFCoordinatorV2Mock} from "lib/chainlink-brownie-contracts/contracts/src/v0.8/mocks/VRFCoordinatorV2Mock.sol";
-import {VRFCoordinatorV2_5Mock} from "lib/chainlink-brownie-contracts/contracts/src/v0.8/vrf/mocks/VRFCoordinatorV2_5Mock.sol";
+import {VRFCoordinatorV2_5Mock} from
+    "lib/chainlink-brownie-contracts/contracts/src/v0.8/vrf/mocks/VRFCoordinatorV2_5Mock.sol";
 import {LinkToken} from "test/mocks/LinkToken.sol";
 
 abstract contract CodeConstants {
@@ -52,7 +53,8 @@ contract HelperConfig is Script, CodeConstants {
         }
 
         vm.startBroadcast();
-        VRFCoordinatorV2_5Mock vrfCoordinator = new VRFCoordinatorV2_5Mock(MOCK_BASE_FEE, MOCK_GAS_PRICE_LINK,MOCK_LINK_ETH_FEED);
+        VRFCoordinatorV2_5Mock vrfCoordinator =
+            new VRFCoordinatorV2_5Mock(MOCK_BASE_FEE, MOCK_GAS_PRICE_LINK, MOCK_LINK_ETH_FEED);
         // MOCK_LINK_ETH_FEED
         LinkToken link = new LinkToken();
         vm.stopBroadcast();

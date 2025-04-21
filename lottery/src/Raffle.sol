@@ -56,6 +56,7 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
         s_raffleState = RaffleState.OPEN;
     }
 
+    /// @notice 参与抽奖函数
     function enterRaffle() external payable {
         // require(msg.value >= i_enteranceFee, "Not enough ETH to enter the raffle");
         //高效调用，减少string带来的gas fee
@@ -70,6 +71,8 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
     }
 
     /**
+     * @notice 检查是否需要执行维护（自动化调用）
+     * @dev 该函数检查是否满足执行维护的条件
      */
     function checkUpkeep(bytes memory /* unused */ )
         public
