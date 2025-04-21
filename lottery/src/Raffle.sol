@@ -36,6 +36,7 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
     //Events
     event RaffleEnter(address indexed player);
     event WinnerPicked(address indexed winner);
+    event RequestedRaffleWinner(uint256 indexed requestId);
 
     constructor(
         uint256 enteranceFee,
@@ -104,11 +105,13 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
             )
         });
 
-        // uint256 requestId =
-        s_vrfCoordinator.requestRandomWords(randomWordsRequest);
+        uint256 requestId = s_vrfCoordinator.requestRandomWords(randomWordsRequest);
+        // 2.0版本是直接传参数不是传结构体
         // uint256 requestId = s_vrfCoordinator.requestRandomWords(
         //     i_keyHash, i_subscriptionId, REQUESR_CONFIRMATIONS, i_callbackGasLimit, NUM_WORDS
         // );
+
+        emit RequestedRaffleWinner(requestId);
     }
 
     function fulfillRandomWords(uint256, /*requestId*/ uint256[] calldata randomWords) internal override {
