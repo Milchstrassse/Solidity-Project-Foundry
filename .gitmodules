@@ -22,3 +22,6 @@
 [submodule "lottery/lib/foundry-devops"]
 	path = lottery/lib/foundry-devops
 	url = https://github.com/Cyfrin/foundry-devops
+[submodule "defi-stablecoin/lib/forge-std"]
+	path = defi-stablecoin/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
