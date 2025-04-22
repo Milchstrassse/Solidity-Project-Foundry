@@ -1,5 +1,9 @@
 pragma solidity ^0.8.19;
 
+import {DecentralizedStableCoin} from "./DecentralizedStableCoin.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 
 /*
  * @title DSCEngine
@@ -19,16 +23,70 @@ pragma solidity ^0.8.19;
  * @notice 此合约是去中心化稳定币系统的核心。它处理铸造和赎回 DSC 以及存入和提取抵押品的所有逻辑。
  * @notice 此合约基于 MakerDAO 的 DSS 系统构建。
  */
-contract DSCEngine {
+contract DSCEngine is ReentrancyGuard {
     // Errors
+    error DSCEngine__NotOwner();
+    error DSCEngine__NeedsMoreThanZero();
+    error DSCEngine__TokenAddressesAndPriceFeedAddressesLengthMismatch();
+    error DSCEngine__NotAllowToken();
+    error DSCEngine__TransferFailed();
 
+    // modifiers
+    modifier moreThanZero(uint256 amount) {
+        if (amount <= 0) {
+            revert DSCEngine__NeedsMoreThanZero();
+        }
+        _;
+    }
+
+    modifier isAllowTOken(address token) {
+        if (s_priceFeeds[token] == address(0)) {
+            revert DSCEngine__NotAllowToken();
+        }
+        _;
+    }
 
     // State Variables
+    mapping(address token => address priceFeed) private s_priceFeeds;
+    mapping(address user => mapping(address token => uint256 amount)) private s_collateralDeposited;
+    DecentralizedStableCoin private immutable i_dsc;
 
+    // events
+    event DepositCollateral(address indexed user, address indexed token, uint256 amount);
 
+    // functions
+    constructor(address[] memory tokenAddresses, address[] memory priceFeedAddresses, address dscAddress) {
+        if (tokenAddresses.length != priceFeedAddresses.length) {
+            revert DSCEngine__TokenAddressesAndPriceFeedAddressesLengthMismatch();
+        }
+
+        for (uint256 i = 0; i < tokenAddresses.length; i++) {
+            s_priceFeeds[tokenAddresses[i]] = priceFeedAddresses[i];
+        }
+
+        i_dsc = DecentralizedStableCoin(dscAddress);
+    }
+
+    // external functions
     function depositCollateralAndMintDsc() external {}
 
-    function depositCollateral() external {}
+    function depositCollateral(address tokenCollateralAddress, uint256 amountCollateral)
+        external
+        moreThanZero(amountCollateral)
+        isAllowTOken(tokenCollateralAddress)
+        nonReentrant
+    {
+        s_collateralDeposited[msg.sender][tokenCollateralAddress] += amountCollateral;
+        emit DepositCollateral(msg.sender, tokenCollateralAddress, amountCollateral);
+        bool success = IERC20(tokenCollateralAddress).transferFrom(
+            msg.sender,
+            address(this),
+            amountCollateral
+        );
+        if (!success) {
+            revert DSCEngine__TransferFailed();
+        }
+    }
 
     function redeemCollateralForDsc() external {}
 

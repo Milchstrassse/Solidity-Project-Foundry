@@ -45,7 +45,6 @@ contract DecentralizedStableCoin is ERC20Burnable, Ownable {
 
     constructor() ERC20("Decentralized Stable Coin", "DSC") {
         // constructor code
-
     }
 
     function burn(uint256 _amount) public override onlyOwner {
@@ -71,7 +70,4 @@ contract DecentralizedStableCoin is ERC20Burnable, Ownable {
         _mint(_to, _amount);
         return true;
     }
-
-
-
 }
