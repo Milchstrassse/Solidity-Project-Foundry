@@ -4,7 +4,7 @@ import {DeployDSC} from "../../script/DeployDSC.s.sol";
 import {DSCEngine} from "../../src/DSCEngine.sol";
 import {DecentralizedStableCoin} from "../../src/DecentralizedStableCoin.sol";
 import {HelperConfig} from "../../script/HelperConfig.s.sol";
-import { ERC20Mock } from "@openzeppelin/contracts/mocks/ERC20Mock.sol"; 
+import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
 // import { ERC20Mock } from "../mocks/ERC20Mock.sol";
 // import { MockV3Aggregator } from "../mocks/MockV3Aggregator.sol";
 // import { MockMoreDebtDSC } from "../mocks/MockMoreDebtDSC.sol";
@@ -52,8 +52,8 @@ contract DSCEngineTest is StdCheats, Test {
     }
 
     /**
-    * @dev 测试当抵押品数量为 0 时，depositCollateral 函数是否会触发回滚
-    */
+     * @dev 测试当抵押品数量为 0 时，depositCollateral 函数是否会触发回滚
+     */
     function testRevertsIfCollateralZero() public {
         vm.startPrank(user);
         // 调用 ERC20Mock 合约的 approve 方法，允许 DSCEngine 合约（地址为 address(dsce)）
