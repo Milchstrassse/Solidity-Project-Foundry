@@ -31,6 +31,7 @@ contract DSCEngine is ReentrancyGuard {
     error DSCEngine__NotAllowToken();
     error DSCEngine__TransferFailed();
     error DSCEngine__BreaksHealthFactor(uint256 healthFactor);
+    error DSCEngine__MintFailed();
 
     // modifiers
     modifier moreThanZero(uint256 amount) {
@@ -103,6 +104,10 @@ contract DSCEngine is ReentrancyGuard {
         s_DscMinted[msg.sender] += amountDscToMint;
         // 检查抵押保证金是否健康
         _revertIfHealthFactorIsBroken(msg.sender);
+        bool success = i_dsc.mint(msg.sender, amountDscToMint);
+        if (!success) {
+            revert DSCEngine__MintFailed();
+        }
     }
 
     function burnDsc() external {}
