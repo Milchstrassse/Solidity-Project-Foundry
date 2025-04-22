@@ -29,14 +29,13 @@ import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 /*
  * @title DecentralizedStableCoin
- * @author Patrick Collins
- * Collateral: Exogenous
- * Minting (Stability Mechanism): Decentralized (Algorithmic)
- * Value (Relative Stability): Anchored (Pegged to USD)
- * Collateral Type: Crypto
+ * @author Milchstrasse
+ * 抵押资产：外部资产
+ * 铸造机制（稳定机制）：去中心化（算法实现）
+ * 价值（相对稳定性）：锚定（与美元挂钩）
+ * 抵押资产类型：加密货币
  *
-* This is the contract meant to be owned by DSCEngine. It is a ERC20 token that can be minted and burned by the
-DSCEngine smart contract.
+ * 此合约旨在由 DSCEngine 拥有。它是一个 ERC20 代币合约，DSCEngine 智能合约可以对其进行铸造和销毁操作。
  */
 contract DecentralizedStableCoin is ERC20Burnable, Ownable {
     // Errors
