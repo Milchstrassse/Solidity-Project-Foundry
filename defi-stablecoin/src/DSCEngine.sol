@@ -68,7 +68,7 @@ contract DSCEngine is ReentrancyGuard {
     // events
     event DepositCollateral(address indexed user, address indexed token, uint256 amount);
     event CollateralDeposited(address indexed user, address indexed token, uint256 indexed amount);
-    event CollateralRedeemed(address indexed redeemFrom, address indexed redeemTo, address token, uint256 amount);  // if
+    event CollateralRedeemed(address indexed redeemFrom, address indexed redeemTo, address token, uint256 amount); // if
         // redeemFrom != redeemedTo, then it was liquidated
 
     // functions
@@ -153,7 +153,7 @@ contract DSCEngine is ReentrancyGuard {
      * @dev 如果你担心自己可能会被清算，并且只想销毁 DSC 而保留抵押品，可以使用此函数。
      */
     function burnDsc(uint256 amountDscToBurn) public {
-        _burnDsc(amountDscToBurn, msg.sender, msg.sender);   
+        _burnDsc(amountDscToBurn, msg.sender, msg.sender);
         _revertIfHealthFactorIsBroken(msg.sender); // todo 删除代币应该不会触发到这个，可以审查是否删除用于节省代币
     }
 
@@ -177,7 +177,7 @@ contract DSCEngine is ReentrancyGuard {
         if (startingUserHealthFactor >= MIN_HEALTH_FACTOR) {
             revert DSCEngine__HealthFactorOk();
         }
-       // 计算覆盖债务所需的抵押品数量
+        // 计算覆盖债务所需的抵押品数量
         uint256 tokenAmountFromDebtCovered = getTokenAmountFromUsd(collateral, debtToCover);
         // 给予清算者 10% 的奖励
         // 因此我们用 100 DSC 兑换价值 110 美元的 WETH 给清算者
@@ -245,12 +245,7 @@ contract DSCEngine is ReentrancyGuard {
         i_dsc.burn(amountDscToBurn);
     }
 
-    function _redeemCollateral(
-        address tokenCollateralAddress,
-        uint256 amountCollateral,
-        address from,
-        address to
-    )
+    function _redeemCollateral(address tokenCollateralAddress, uint256 amountCollateral, address from, address to)
         private
     {
         s_collateralDeposited[from][tokenCollateralAddress] -= amountCollateral;
