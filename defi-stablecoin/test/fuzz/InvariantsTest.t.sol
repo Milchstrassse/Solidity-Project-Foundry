@@ -26,15 +26,17 @@ contract InvariantsTest is StdInvariant, Test {
             helperConfig.activeNetworkConfig();
         targetContract(address(dsce));
     }
+    function invariant_protocolMustHaveMoreValueThatTotalSupplyDollars() public view {
+        uint256 totalSupply = dsc.totalSupply();
+        uint256 wethDeposted = IERC20(weth).balanceOf(address(dsce));
+        uint256 wbtcDeposited = IERC20(wbtc).balanceOf(address(dsce));
 
-    // function invariant_protocolMustHaveMoreValueThanTotalSupply() external view {
-    //     uint256 totalValue = dsce.totalSupply();
-    //     uint256 totalWethDeposited = IERC20(weth).balanceOf(address(dsce));
-    //     uint256 totalWbtcDeposited = IERC20(wbtc).balanceOf(address(dsce));
+        uint256 wethValue = dsce.getUsdValue(weth, wethDeposted);
+        uint256 wbtcValue = dsce.getUsdValue(wbtc, wbtcDeposited);
 
-    //     uint256 totalValueInWeth = dsce.getUsdValue(weth, totalWethDeposited);
-    //     uint256 totalValueInWbtc = dsce.getUsdValue(wbtc, totalWbtcDeposited);
+        console.log("wethValue: %s", wethValue);
+        console.log("wbtcValue: %s", wbtcValue);
 
-    //     assert(totalValueInWeth + totalValueInWbtc > totalValue);
-    // }
+        assert(wethValue + wbtcValue >= totalSupply);
+    }
 }
